@@ -1,0 +1,36 @@
+# Cabeçalhos do Netlify.
+#
+# Este arquivo não aparece no site: o Netlify o consome no deploy e aplica as
+# regras a cada resposta. Ele precisa estar dentro da pasta publicada.
+
+/*
+  # Content-Security-Policy — a lista do que a página pode carregar e com quem
+  # pode falar. É a defesa contra uma injeção conseguir enviar seu histórico
+  # financeiro para um servidor de terceiro: mesmo que um script estranho rode,
+  # ele não tem para onde mandar.
+  #
+  # Troque *.supabase.co pelo domínio exato do seu projeto assim que ele
+  # existir (https://xxxxx.supabase.co). O curinga já restringe à plataforma,
+  # mas o domínio exato restringe ao SEU banco.
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://zycxwjakasoajltappic.supabase.co; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+
+  # O app não tem por que ser embutido em iframe de ninguém.
+  X-Frame-Options: DENY
+
+  # Não vaza a URL do app ao clicar para fora.
+  Referrer-Policy: no-referrer
+
+  # Sem sniffing de tipo: um arquivo servido como texto não vira script.
+  X-Content-Type-Options: nosniff
+
+  # Nenhuma dessas capacidades é usada por este app.
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
+
+  # HTTPS obrigatório por um ano, incluindo subdomínios.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# O service worker não pode ser servido de cache velho: é ele que decide qual
+# versão do app roda offline. Um sw.js grudado no cache trava o app numa versão
+# antiga sem nada na tela dizendo por quê.
+/sw.js
+  Cache-Control: no-cache

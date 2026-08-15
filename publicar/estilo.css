@@ -1,0 +1,1341 @@
+/* =====================================================================
+   Registro Diário
+   Editorial, sem cantos arredondados, monoespaçada para todo número.
+   Claro por padrão, escuro quando o sistema pede.
+   ===================================================================== */
+
+:root {
+  --bg: #e9eae5;
+  --surface: #fafaf8;
+  --surface-2: #f1f2ed;
+  --ink: #15181c;
+  --muted: #5b6068;
+  --faint: #61666d;
+  --line: #d3d5cd;
+  --line-strong: #b9bcb2;
+  --accent: #a2331f;
+  --accent-ink: #ffffff;
+  --accent-wash: #f0e2de;
+  --done: #2e6a4e;
+  --done-wash: #e0eae3;
+  /* Texto de objetivo cumprido. Existe como token próprio porque `--muted`
+     sobre `--done-wash` some às 22h no escuro: o cumprido tem de continuar
+     legível, senão marcar o objetivo apaga a prova de que ele existiu. */
+  --done-ink: #2c4c3d;
+
+  --f-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, "Roboto Mono", monospace;
+
+  --larg-coluna: 30rem;
+
+  /* Escala de espaço. Existe para o ritmo vertical ser uma decisão tomada uma
+     vez, e não um número escolhido de novo em cada bloco — que é como uma tela
+     acumula 0.55rem, 0.6rem e 0.65rem lado a lado sem ninguém notar. */
+  --e1: 0.3rem;
+  --e2: 0.55rem;
+  --e3: 0.9rem;
+  --e4: 1.5rem;
+  --e5: 2.4rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111316;
+    --surface: #191c20;
+    --surface-2: #202429;
+    --ink: #e7e8e4;
+    --muted: #969ba2;
+    --faint: #8b9199;
+    --line: #292d33;
+    --line-strong: #3a3f46;
+    --accent: #e2704f;
+    --accent-ink: #1a0e09;
+    --accent-wash: #2e1e18;
+    --done: #6fbf95;
+    --done-wash: #17251e;
+    --done-ink: #a9cebb;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #111316;
+  --surface: #191c20;
+  --surface-2: #202429;
+  --ink: #e7e8e4;
+  --muted: #969ba2;
+  --faint: #8b9199;
+  --line: #292d33;
+  --line-strong: #3a3f46;
+  --accent: #e2704f;
+  --accent-ink: #1a0e09;
+  --accent-wash: #2e1e18;
+  --done: #6fbf95;
+  --done-wash: #17251e;
+  --done-ink: #a9cebb;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  padding: env(safe-area-inset-top) 0 calc(2rem + env(safe-area-inset-bottom));
+}
+
+.wrap {
+  max-width: var(--larg-coluna);
+  margin: 0 auto;
+  padding: 1.6rem 1.1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/**
+ * O `display: none` do atributo `hidden` vem da folha do navegador, e QUALQUER
+ * regra de autor com `display` ganha dela — inclusive `fieldset {display:flex}`
+ * logo abaixo. Sem este !important o painel de conferir e o campo de destino
+ * ficam visíveis mesmo com hidden=true, e o painel fantasma aceita "Gravar"
+ * sem conta nenhuma selecionada.
+ */
+[hidden] {
+  display: none !important;
+}
+
+/* ---- cabeçalho ---- */
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.cabecalho-linha {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+/* Estado da sincronização. Discreto por princípio: só chama atenção quando
+   há pendência, porque "tudo em dia" não é notícia. */
+.sinc {
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  background: transparent;
+  border: 0;
+  padding: 0.35rem 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sinc.pend {
+  color: var(--accent);
+}
+.sinc:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- abas ---- */
+
+.abas {
+  display: grid;
+  grid-auto-flow: column;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.abas button {
+  appearance: none;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 0.4rem;
+  min-height: 2.9rem;
+  cursor: pointer;
+}
+
+.abas button[aria-selected="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.abas button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ---- campos ---- */
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+legend,
+.rotulo {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 0;
+}
+
+.opcoes {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 0.4rem;
+}
+
+/* Grupo e categoria não cabem numa linha só: quebram em grade. */
+.opcoes.envolve {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fit, minmax(6.6rem, 1fr));
+}
+
+.op {
+  appearance: none;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 550;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0.8rem 0.2rem;
+  cursor: pointer;
+  min-height: 3rem;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.opcoes.envolve .op {
+  font-size: 0.82rem;
+  padding: 0.7rem 0.4rem;
+  min-height: 2.8rem;
+  line-height: 1.2;
+}
+
+.op[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.op:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.energia .op {
+  font-family: var(--f-mono);
+  font-size: 1.05rem;
+}
+
+.escala {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--faint);
+}
+
+/* ---- prazos (vitrine dos arquivos) ---- */
+
+/* Visualmente distinta dos campos: isto não se edita aqui. A borda esquerda
+   marca o bloco inteiro como "vem de fora", na mesma gramática que o
+   histórico já usa para estado. */
+.prazos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  border-left: 3px solid var(--line-strong);
+  padding-left: var(--e3);
+}
+
+#prazos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+/* A coluna do prazo é estreita de propósito: num app de 390px, a urgência
+   cabe em três caracteres e o resto da linha pertence ao compromisso. Com o
+   prazo por extenso aqui, todo título aparecia truncado. */
+.prazo {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 2.9rem 1fr;
+  align-items: baseline;
+  gap: var(--e2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0.55rem 0.6rem;
+  cursor: pointer;
+  min-height: 2.9rem;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.prazo-quando {
+  font-family: var(--f-mono);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* Até duas linhas antes de cortar: um compromisso pela metade não cobra
+   nada. São poucos itens na lista — cabe. */
+.prazo-txt {
+  font-size: 0.86rem;
+  line-height: 1.25;
+  color: var(--muted);
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* Vencido e "hoje" acendem; o resto fica quieto. Se tudo chamasse atenção,
+   nada chamaria — e a lista inteira viraria ruído a ser ignorado. */
+.prazo-vencido {
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+.prazo-vencido .prazo-quando {
+  color: var(--accent);
+  font-weight: 600;
+}
+.prazo-vencido .prazo-txt {
+  color: var(--ink);
+}
+
+.prazo-hoje {
+  border-left: 3px solid var(--accent);
+}
+.prazo-hoje .prazo-quando {
+  color: var(--accent);
+}
+.prazo-hoje .prazo-txt {
+  color: var(--ink);
+}
+
+.prazo-perto .prazo-quando {
+  color: var(--muted);
+}
+
+.prazo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.placar.alerta {
+  color: var(--accent);
+}
+
+
+/* ---- detalhe do treino ---- */
+
+.treino-km,
+.treino-grupos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e2);
+  margin-top: var(--e2);
+}
+
+.km-linha {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--e2);
+}
+
+#treinoKm {
+  font-family: var(--f-mono);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.km-unidade {
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* ---- objetivos do dia ---- */
+
+/* Legenda e placar na mesma linha. `legend` fora de fieldset com border não
+   tem posicionamento próprio, então a linha é um flex comum. */
+.legenda-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e3);
+}
+
+/* Não é legenda: é o placar do dia. Ganha peso quando fecha — é a única
+   recompensa que este app oferece, e vale gastá-la aqui. */
+.placar {
+  font-family: var(--f-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.18s ease;
+}
+
+.placar.completo {
+  color: var(--done);
+}
+
+#objetivos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+}
+
+.obj {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+/* O primeiro objetivo é O objetivo; os outros dois são o que couber.
+   A diferença é de ALTURA antes de ser de tipo: 0.4rem a mais se percebe de
+   relance, meio ponto de corpo não se percebe nunca. Diz "prioridade 1" sem
+   precisar escrever "prioridade 1". */
+.obj-primeiro .obj-check,
+.obj-primeiro .obj-txt {
+  min-height: 3.4rem;
+}
+
+.obj-primeiro .obj-txt {
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Os dois seguintes recuam. Sem isto os três disputam o mesmo olhar. */
+.obj:not(.obj-primeiro) .obj-txt {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* A caixa de marcar é um botão, não um input[type=checkbox]: o nativo não
+   aceita a forma quadrada e o traço de acento sem hack de aparência, e aqui
+   ele precisa ter 48px de alvo para o polegar às 22h. */
+.obj-check {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+  min-height: 3rem;
+  position: relative;
+}
+
+/* O traço é desenhado, não é um caractere: fonte de sistema desenha ✓ de
+   tamanhos diferentes em cada plataforma. */
+.obj-check::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.85rem;
+  height: 0.45rem;
+  border-left: 2px solid var(--done);
+  border-bottom: 2px solid var(--done);
+  /* A escala parte de 0.6 e não de 0: o traço cresce a partir de si mesmo em
+     vez de brotar do nada. É a diferença entre um estado que muda e um
+     estado que aparece — e é o único movimento da tela Dia. */
+  transform: rotate(-45deg) translate(0.05rem, -0.1rem) scale(0.6);
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+
+.obj-check[aria-pressed="true"]::after {
+  opacity: 1;
+  transform: rotate(-45deg) translate(0.05rem, -0.1rem) scale(1);
+}
+
+.obj-check:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* `.obj .obj-txt` e não `.obj-txt`: a regra genérica é `input[type="text"]`,
+   que vale (0,1,1) — uma classe sozinha perderia dela. Duas classes vencem
+   sem precisar de !important, que é dívida que ninguém consegue pagar depois. */
+.obj .obj-txt {
+  border: 0;
+  background: transparent;
+  min-height: 3rem;
+}
+
+.obj .obj-txt:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* Cumprido sai do primeiro plano sem sumir: o risco é a prova de que estava
+   ali. Um objetivo que desaparece ao ser marcado apaga o próprio placar. */
+.obj-feito {
+  background: var(--done-wash);
+  border-color: var(--done);
+}
+
+.obj-feito .obj-check {
+  border-right-color: var(--done);
+}
+
+/* Cumprido não é apagado. O risco marca que fechou; a cor continua legível,
+   porque o objetivo cumprido é a prova de que o dia valeu — e às 22h, no
+   escuro, texto em `--muted` sobre o verde-escuro sumia da tela. */
+.obj-feito .obj-txt,
+.obj-primeiro.obj-feito .obj-txt {
+  color: var(--done-ink);
+  text-decoration: line-through;
+  text-decoration-color: var(--done);
+  text-decoration-thickness: 1px;
+}
+
+/* ---- sono ---- */
+
+.sono-grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+  gap: var(--e2);
+}
+
+/* A base é resultado dos dois campos, não um terceiro campo. O respiro maior
+   à esquerda é o que diz isso: sem ele o número encosta no "Acordei às" e os
+   três viram uma fileira de iguais. */
+.sono-grade > .sono-base {
+  padding-left: var(--e3);
+}
+
+.sono-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  min-width: 0;
+}
+
+/* A base é resultado, não campo: alinhada com os dois inputs que a produzem,
+   com a borda de acento apontando que ela veio deles. */
+.sono-base {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e1);
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* É o número que esta versão do app existe para produzir. Domina o bloco, com
+   a régua de acento embaixo ligando-o aos dois campos que o geraram. */
+.sono-valor {
+  font-family: var(--f-mono);
+  font-size: clamp(1.75rem, 7vw, 2.1rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  color: var(--ink);
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 0.5rem;
+  min-width: 4.6rem;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.sono-valor.indefinido {
+  color: var(--line-strong);
+  font-weight: 500;
+  border-bottom-color: var(--line);
+}
+
+.sono-valor.suspeito {
+  color: var(--accent);
+}
+
+.sono-media {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+/* Abaixo de 360px os dois campos de hora e a base não cabem numa linha: o
+   input[type=time] tem largura mínima própria e estoura a grade. */
+@media (max-width: 360px) {
+  .sono-grade {
+    grid-template-columns: 1fr 1fr;
+  }
+  .sono-base {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .sono-valor {
+    padding-bottom: 0.2rem;
+  }
+}
+
+input[type="time"],
+input[type="date"],
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 0.8rem 0.7rem;
+  width: 100%;
+  min-height: 3rem;
+}
+
+input[type="time"],
+input[type="date"] {
+  font-family: var(--f-mono);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+textarea {
+  resize: none;
+  line-height: 1.4;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Os placeholders desta tela carregam informação — a escada "o que precisa
+   sair hoje / …e depois / se sobrar tempo" ensina a priorizar. Deixá-los na
+   opacidade de fábrica os joga abaixo de 4.5:1 no escuro. O `opacity: 1` é
+   obrigatório: o Firefox aplica opacidade própria e a cor sozinha não basta. */
+::placeholder {
+  color: var(--faint);
+  opacity: 1;
+}
+
+.dica {
+  font-size: 0.78rem;
+  color: var(--faint);
+  margin: 0;
+}
+
+/* Some da tela, continua no leitor. `display:none` e `visibility:hidden` são
+   ignorados pelo leitor também — daí o recorte de 1px, que é a técnica que
+   preserva o anúncio. */
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- botão principal ---- */
+
+.salvar {
+  appearance: none;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 0;
+  border-radius: 0;
+  padding: 1rem;
+  min-height: 3.4rem;
+  cursor: pointer;
+  width: 100%;
+}
+
+.salvar:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.salvar:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.status {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--faint);
+  min-height: 1.2rem;
+  margin: 0;
+}
+
+.status.ok {
+  color: var(--done);
+}
+.status.pend {
+  color: var(--accent);
+}
+
+/* ---- histórico ---- */
+
+.hist {
+  border-top: 1px solid var(--line);
+  padding-top: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  padding: 0.6rem 0.7rem;
+  font-size: 0.86rem;
+}
+
+.dia-topo {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr auto;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+/* Marcadores dos objetivos do dia. Quadrados, não bolinhas: nada neste app
+   tem canto arredondado, e desenhá-los em CSS evita a loteria de qual fonte
+   cada sistema usaria para ●○. O leitor de tela recebe a contagem por
+   aria-label, não estes elementos. */
+.dia-objs {
+  display: inline-flex;
+  gap: 0.22rem;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.mrk {
+  width: 0.34rem;
+  height: 0.34rem;
+  border: 1px solid var(--line-strong);
+}
+
+.mrk-feito {
+  background: var(--done);
+  border-color: var(--done);
+}
+
+.dia.treinou {
+  border-left-color: var(--done);
+}
+.dia.pendente {
+  border-left-color: var(--accent);
+}
+
+.dia-data {
+  font-family: var(--f-mono);
+  font-size: 0.76rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.dia-txt {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Sem isto o item de grid tem min-width:auto e o texto empurra a coluna
+     em vez de truncar — a reticência nunca apareceria. */
+  min-width: 0;
+}
+
+/* Segunda linha do item: o que foi medido no dia. Recuada até a coluna do
+   texto, para as datas continuarem alinhadas numa régua só. */
+.dia-meta {
+  font-family: var(--f-mono);
+  font-size: 0.74rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  padding-left: 3.8rem;
+}
+
+.vazio {
+  font-size: 0.86rem;
+  color: var(--faint);
+  margin: 0;
+}
+
+.aviso {
+  background: var(--accent-wash);
+  border-left: 3px solid var(--accent);
+  padding: 0.7rem 0.8rem;
+  font-size: 0.84rem;
+}
+
+/* ---- contas e saldo ---- */
+
+.contas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+.conta-card {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line-strong);
+  padding: 0.6rem 0.55rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-height: 4.2rem;
+}
+
+.conta-card[aria-expanded="true"] {
+  border-top-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.conta-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.conta-nome {
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.conta-saldo {
+  font-family: var(--f-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.conta-saldo.negativo {
+  color: var(--accent);
+}
+.conta-saldo.indefinido {
+  color: var(--faint);
+  font-weight: 500;
+}
+
+.conferir {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.conferir-linha {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+}
+
+.conferir button {
+  appearance: none;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 0;
+  padding: 0 1rem;
+  min-height: 3rem;
+  cursor: pointer;
+}
+
+.total-mes {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.1rem;
+}
+
+.seta {
+  appearance: none;
+  font: inherit;
+  font-family: var(--f-mono);
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  /* 2.4rem dava 38px: abaixo do alvo de toque confortável (44px). */
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.seta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mes-nome {
+  font-family: var(--f-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  text-align: center;
+}
+
+.grupo-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  padding: 0.45rem 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.cat-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.cat-total span:last-child,
+.grupo-total span:last-child {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lanc {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr auto auto;
+  align-items: baseline;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+  padding: 0.55rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.lanc.entrada {
+  border-left-color: var(--done);
+}
+.lanc.pendente {
+  border-left-color: var(--accent);
+}
+.lanc.transferencia,
+.lanc.ajuste {
+  border-left-color: var(--line-strong);
+  opacity: 0.85;
+}
+
+/* A linha recém-lançada pisca uma vez. No PC, lançando em série sem olhar
+   para o mouse, é a única confirmação de que a tecla pegou. */
+.lanc.novo {
+  animation: entrou 0.5s ease;
+}
+
+@keyframes entrou {
+  from {
+    background: var(--accent-wash);
+    border-left-color: var(--accent);
+  }
+}
+
+.lanc-data {
+  font-family: var(--f-mono);
+  font-size: 0.74rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.lanc-txt {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.lanc-valor {
+  font-family: var(--f-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.lanc.entrada .lanc-valor {
+  color: var(--done);
+}
+
+.apagar {
+  appearance: none;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--faint);
+  background: transparent;
+  border: 0;
+  padding: 0.1rem 0.2rem;
+  cursor: pointer;
+}
+
+.apagar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Sair é raro e destrutivo (limpa o espelho do aparelho): discreto de
+   propósito, longe do polegar, sem parecer um botão de ação. */
+.sair {
+  appearance: none;
+  font: inherit;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.sair:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sair:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- login ---- */
+
+.entrada-tela {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.entrada-tela h1 {
+  font-size: 2rem;
+}
+
+.entrada-tela .dica {
+  max-width: 26rem;
+}
+
+/* ---- desfazer ---- */
+
+/**
+ * Fica sobre o conteúdo, preso ao rodapé. Lançando em série, errar uma linha e
+ * só perceber três depois é o modo de falha óbvio — e caçar a linha certa na
+ * lista para clicar no × é justamente o que tira a mão do teclado.
+ */
+.desfazer {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.2rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--ink);
+  color: var(--bg);
+  border: 0;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.22);
+  max-width: calc(100vw - 2rem);
+}
+
+.desfazer span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desfazer button {
+  appearance: none;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-family: var(--f-mono);
+  color: var(--bg);
+  background: transparent;
+  border: 1px solid currentColor;
+  padding: 0.4rem 0.7rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.desfazer button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- atalhos de teclado, só no PC ---- */
+
+kbd {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  padding: 0.05rem 0.3rem;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.so-desktop {
+  display: none;
+}
+
+/* =====================================================================
+   PC — duas colunas
+   Abaixo de 900px nada disto vale e o app é exatamente o de celular.
+   ===================================================================== */
+
+@media (min-width: 900px) {
+  .so-desktop {
+    display: revert;
+  }
+
+  .wrap {
+    max-width: 68rem;
+    padding: 2.2rem 2rem 0;
+  }
+
+  /* O login não acompanha a largura do app: um campo de e-mail de 60rem é
+     grotesco, e o formulário tem duas linhas. */
+  #telaEntrar {
+    max-width: 27rem;
+  }
+
+  /* Duas abas esticadas por 68rem viram duas faixas enormes apontando para
+     nada. Aqui elas encolhem ao próprio texto e ancoram à esquerda. */
+  .abas {
+    align-self: flex-start;
+    grid-template-columns: repeat(2, 9rem);
+  }
+
+  h1 {
+    font-size: 1.9rem;
+  }
+
+  /* Só a tela de Gastos ganha duas colunas: é onde se lança em série olhando
+     o extrato do banco na janela ao lado. A tela Dia é preenchida uma vez por
+     dia e ficaria ridícula esticada. */
+  #telaGastos {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    align-items: start;
+    gap: 2.4rem;
+  }
+
+  #telaGastos[hidden] {
+    display: none !important;
+  }
+
+  .coluna-lancar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    position: sticky;
+    top: 1.5rem;
+  }
+
+  .coluna-razao {
+    display: flex;
+    flex-direction: column;
+    gap: 1.3rem;
+    min-width: 0;
+  }
+
+  .coluna-razao .hist:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .coluna-razao .total-mes {
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  #telaDia {
+    max-width: var(--larg-coluna);
+  }
+
+  /* Com mouse e teclado o alvo não precisa ter 48px de altura. */
+  .op {
+    min-height: 2.6rem;
+    padding: 0.55rem 0.3rem;
+  }
+
+  .obj-check {
+    min-height: 2.7rem;
+  }
+  .obj-txt {
+    min-height: 2.7rem;
+  }
+
+  /* Hover só existe onde há ponteiro. Em touch, `:hover` gruda no último
+     elemento tocado e deixa um botão aceso que ninguém está apontando. */
+  .op:hover:not([aria-pressed="true"]),
+  .seta:hover,
+  .conta-card:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-2);
+  }
+
+  .obj:hover {
+    border-color: var(--line-strong);
+  }
+
+  .dia:hover,
+  .lanc:hover {
+    border-color: var(--line-strong);
+  }
+
+  .opcoes.envolve {
+    grid-template-columns: repeat(auto-fit, minmax(5.6rem, 1fr));
+  }
+
+  .opcoes.envolve .op {
+    min-height: 2.3rem;
+    font-size: 0.78rem;
+  }
+
+  .lanc {
+    font-size: 0.88rem;
+    padding: 0.5rem 0.7rem;
+  }
+
+  /* Centralizado, a barra cai em cima do razão — justamente a lista que se
+     está conferindo. Aqui ela ancora embaixo da coluna de lançar, que é para
+     onde o olho já está apontado. */
+  .desfazer {
+    left: 2rem;
+    transform: none;
+    max-width: 22rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .op,
+  .obj,
+  .placar,
+  .sono-valor {
+    transition: none;
+  }
+
+  /* O traço do check ainda aparece e some — só deixa de crescer. Remover a
+     transição inteira tiraria a única confirmação visual do toque. */
+  .obj-check::after {
+    transition: opacity 0.16s ease;
+    transform: rotate(-45deg) translate(0.05rem, -0.1rem) scale(1);
+  }
+
+  .lanc.novo {
+    animation: none;
+  }
+}

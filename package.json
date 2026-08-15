@@ -1,0 +1,10 @@
+{
+  "name": "registro-diario",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Registro Diário — app pessoal de treino, sono e gastos. Este package.json existe para o Node tratar os módulos como ESM ao rodar os testes; o app no navegador não depende dele e a pasta publicar/ não o inclui.",
+  "scripts": {
+    "test": "node --test testes/"
+  }
+}

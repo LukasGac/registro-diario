@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Preview — tela Dia</title>
+    <link rel="stylesheet" href="../publicar/estilo.css" />
+  </head>
+  <body>
+    <!--
+      Preview estático da tela Dia, para validar o desenho sem login e sem
+      banco. NÃO faz parte do app: mora fora de `publicar\`, então não é
+      publicado nem entra no cache do service worker. Markup copiado do
+      index.html com estados de exemplo preenchidos à mão.
+    -->
+    <div class="wrap">
+      <header>
+        <div class="cabecalho-linha">
+          <div>
+            <span class="eyebrow">sexta</span>
+            <h1>14 de agosto</h1>
+          </div>
+          <button type="button" class="sinc">em dia</button>
+        </div>
+      </header>
+
+      <div class="abas" role="tablist">
+        <button type="button" role="tab" aria-selected="true">Dia</button>
+        <button type="button" role="tab" aria-selected="false">Gastos</button>
+      </div>
+
+      <section class="tela" id="telaDia">
+        <fieldset>
+          <legend>Registrando</legend>
+          <div class="opcoes">
+            <button type="button" class="op" aria-pressed="false">ontem 13/08</button>
+            <button type="button" class="op" aria-pressed="true">hoje 14/08</button>
+          </div>
+        </fieldset>
+
+        <section class="prazos">
+          <div class="legenda-linha">
+            <span class="rotulo">Prazos</span>
+            <span class="placar alerta">1 vencido</span>
+          </div>
+          <div id="prazos" role="list">
+            <button type="button" class="prazo prazo-vencido" role="listitem">
+              <span class="prazo-quando">−1d</span>
+              <span class="prazo-txt">Revisar a proposta antes da reunião</span>
+            </button>
+            <button type="button" class="prazo prazo-hoje" role="listitem">
+              <span class="prazo-quando">hoje</span>
+              <span class="prazo-txt">Ligar para o fornecedor sobre o pedido atrasado</span>
+            </button>
+            <button type="button" class="prazo prazo-perto" role="listitem">
+              <span class="prazo-quando">3d</span>
+              <span class="prazo-txt">Escolher a stack do projeto novo</span>
+            </button>
+            <button type="button" class="prazo prazo-adiante" role="listitem">
+              <span class="prazo-quando">16d</span>
+              <span class="prazo-txt">Corrida de 8 km</span>
+            </button>
+          </div>
+          <p class="dica">
+            Vem dos seus arquivos, não daqui — toque para virar objetivo do
+            dia. Para mudar prazo ou texto, mexa no arquivo.
+          </p>
+        </section>
+
+        <fieldset class="objetivos">
+          <div class="legenda-linha">
+            <span class="rotulo">Objetivos do dia</span>
+            <span class="placar">2 de 3</span>
+          </div>
+          <div id="objetivos">
+            <div class="obj obj-primeiro obj-feito">
+              <button type="button" class="obj-check" aria-pressed="true"></button>
+              <input
+                type="text"
+                class="obj-txt"
+                value="Terminar o relatório do trimestre"
+                placeholder="o que precisa sair hoje"
+              />
+            </div>
+            <div class="obj obj-feito">
+              <button type="button" class="obj-check" aria-pressed="true"></button>
+              <input
+                type="text"
+                class="obj-txt"
+                value="Revisar a proposta do cliente"
+                placeholder="…e depois"
+              />
+            </div>
+            <div class="obj">
+              <button type="button" class="obj-check" aria-pressed="false"></button>
+              <input type="text" class="obj-txt" value="" placeholder="se sobrar tempo" />
+            </div>
+          </div>
+          <p class="dica">
+            Até três. Escreva de manhã, marque ao fechar o dia — o que não
+            couber em três não era prioridade.
+          </p>
+        </fieldset>
+
+        <fieldset class="treino">
+          <legend>Treino</legend>
+          <div class="opcoes">
+            <button type="button" class="op" aria-pressed="false">força</button>
+            <button type="button" class="op" aria-pressed="false">corrida</button>
+            <button type="button" class="op" aria-pressed="true">ambos</button>
+            <button type="button" class="op" aria-pressed="false">nada</button>
+          </div>
+
+          <div class="treino-km">
+            <label class="rotulo" for="km">Distância</label>
+            <div class="km-linha">
+              <input type="text" id="km" inputmode="decimal" value="8,5" />
+              <span class="km-unidade">km</span>
+            </div>
+          </div>
+
+          <div class="treino-grupos">
+            <span class="rotulo">O que treinei</span>
+            <div class="opcoes envolve">
+              <button type="button" class="op" aria-pressed="true">costas</button>
+              <button type="button" class="op" aria-pressed="false">peito</button>
+              <button type="button" class="op" aria-pressed="true">ombro</button>
+              <button type="button" class="op" aria-pressed="false">bíceps</button>
+              <button type="button" class="op" aria-pressed="false">tríceps</button>
+              <button type="button" class="op" aria-pressed="false">perna</button>
+            </div>
+            <p class="dica">Pode marcar mais de um.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="sono">
+          <legend class="so-leitor">Sono</legend>
+          <div class="sono-grade">
+            <div class="sono-campo">
+              <label class="rotulo" for="d">Dormi às</label>
+              <input type="time" id="d" value="23:30" step="300" />
+            </div>
+            <div class="sono-campo">
+              <label class="rotulo" for="a">Acordei às</label>
+              <input type="time" id="a" value="05:40" step="300" />
+            </div>
+            <div class="sono-base">
+              <span class="rotulo">Base</span>
+              <output class="sono-valor">6h10</output>
+            </div>
+          </div>
+          <p class="dica"></p>
+          <p class="dica sono-media">base de 5h48 em 4 noites medidas</p>
+        </fieldset>
+
+        <fieldset class="energia">
+          <legend>Energia</legend>
+          <div class="opcoes">
+            <button type="button" class="op" aria-pressed="false">1</button>
+            <button type="button" class="op" aria-pressed="false">2</button>
+            <button type="button" class="op" aria-pressed="true">3</button>
+            <button type="button" class="op" aria-pressed="false">4</button>
+            <button type="button" class="op" aria-pressed="false">5</button>
+          </div>
+          <div class="escala"><span>arrasado</span><span>ótimo</span></div>
+        </fieldset>
+
+        <fieldset>
+          <label class="rotulo" for="j">Janela 19h–22h</label>
+          <textarea id="j" rows="2">Escrevi o esboço da apresentação</textarea>
+        </fieldset>
+
+        <button type="button" class="salvar">Atualizar</button>
+        <p class="status ok">salvo</p>
+
+        <section class="hist">
+          <span class="rotulo">Últimos 7 dias</span>
+          <div>
+            <div class="dia treinou">
+              <div class="dia-topo">
+                <span class="dia-data">14/08</span>
+                <span class="dia-txt">Escrevi o esboço da apresentação</span>
+                <span class="dia-objs" role="img" aria-label="2 de 3 objetivos cumpridos"
+                  ><span class="mrk mrk-feito"></span><span class="mrk mrk-feito"></span
+                  ><span class="mrk"></span
+                ></span>
+              </div>
+              <div class="dia-meta">8,5 km · costas, ombro · 6h10 · e3</div>
+            </div>
+            <div class="dia treinou">
+              <div class="dia-topo">
+                <span class="dia-data">13/08</span>
+                <span class="dia-txt">Corri no fim da tarde, ritmo leve</span>
+                <span class="dia-objs" role="img" aria-label="1 de 2 objetivos cumpridos"
+                  ><span class="mrk mrk-feito"></span><span class="mrk"></span
+                ></span>
+              </div>
+              <div class="dia-meta">15 km · 5h30 · e4</div>
+            </div>
+            <div class="dia pendente">
+              <div class="dia-topo">
+                <span class="dia-data">12/08</span>
+                <span class="dia-txt">Não rendeu nada das 19h às 22h</span>
+                <span class="dia-objs" role="img" aria-label="sem objetivos"></span>
+              </div>
+              <div class="dia-meta">perna · e2</div>
+            </div>
+            <div class="dia">
+              <div class="dia-topo">
+                <span class="dia-data">11/08</span>
+                <span class="dia-txt">Organizei a casa à tarde</span>
+                <span class="dia-objs" role="img" aria-label="3 de 3 objetivos cumpridos"
+                  ><span class="mrk mrk-feito"></span><span class="mrk mrk-feito"></span
+                  ><span class="mrk mrk-feito"></span
+                ></span>
+              </div>
+              <div class="dia-meta">— · 7h00 · e4</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="hist">
+          <button type="button" class="sair">Sair da conta</button>
+        </section>
+      </section>
+    </div>
+  </body>
+</html>

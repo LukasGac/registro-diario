@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Preview — molduras</title>
+    <style>
+      body {
+        margin: 0;
+        background: #6b6b6b;
+        display: flex;
+        gap: 24px;
+        padding: 20px;
+        font: 12px ui-monospace, monospace;
+        color: #fff;
+        align-items: flex-start;
+      }
+      figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+      iframe { border: 0; width: 390px; height: 1500px; background: #fff; }
+      .largo iframe { width: 1000px; height: 1500px; }
+    </style>
+  </head>
+  <body>
+    <figure><figcaption>celular · escuro</figcaption><iframe src="./dia.html" data-tema="dark"></iframe></figure>
+    <figure><figcaption>celular · claro</figcaption><iframe src="./dia.html" data-tema="light"></iframe></figure>
+
+    <script>
+      // O tema é um atributo no <html> de cada documento; setar depois do load
+      // é o que permite ver os dois lado a lado na mesma página.
+      for (const f of document.querySelectorAll("iframe")) {
+        f.addEventListener("load", () => {
+          f.contentDocument.documentElement.setAttribute("data-theme", f.dataset.tema);
+        });
+      }
+    </script>
+  </body>
+</html>

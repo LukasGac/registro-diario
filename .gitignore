@@ -1,0 +1,29 @@
+# =====================================================================
+# O que NUNCA entra neste repositório.
+#
+# O repo é privado, mas isso não é motivo para relaxar: repositório privado
+# vira público por um clique errado, e segredo commitado continua no
+# histórico mesmo depois de apagado do arquivo.
+# =====================================================================
+
+# Endereço do projeto e chave anon. A chave é pública por desenho — ela é
+# servida a quem abrir o site — mas o endereço do banco não precisa estar
+# num repositório. Use `app/config.exemplo.js` como molde.
+publicar/app/config.js
+
+# LEGADO, E COM SEGREDO DENTRO: token em texto claro, id da planilha e a
+# conta de e-mail. A migração para o Supabase já aconteceu; este arquivo
+# só existe até a implantação do Apps Script ser excluída.
+apps-script.gs
+
+# Importação da planilha antiga: saldos, gastos e registros diários reais.
+banco/002-importacao.sql
+
+# Notas que ligam o app ao sistema de documentos pessoais.
+NOTAS-PESSOAIS.md
+
+# Ruído de máquina
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

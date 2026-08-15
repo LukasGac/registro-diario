@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#191c20" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#e9eae5" media="(prefers-color-scheme: light)" />
+    <title>Registro Diário</title>
+
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="stylesheet" href="./estilo.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23191C20'/%3E%3Crect x='38' y='34' width='104' height='112' rx='4' fill='none' stroke='%23E2704F' stroke-width='8'/%3E%3Cpath d='M60 74h60M60 98h60M60 122h34' stroke='%23E7E8E4' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
+  </head>
+
+  <body>
+    <!-- ============================ ENTRAR ============================ -->
+
+    <div class="wrap" id="telaEntrar" hidden>
+      <section class="entrada-tela">
+        <header>
+          <span class="eyebrow">Registro Diário</span>
+          <h1>Entrar</h1>
+        </header>
+
+        <div class="aviso" id="avisoConfig" hidden>
+          Falta ligar o app ao banco. Abra <code>app/config.js</code> e preencha
+          a URL do projeto e a chave <code>anon</code>.
+        </div>
+
+        <form id="formEntrar">
+          <fieldset>
+            <label class="rotulo" for="email">E-mail</label>
+            <input
+              type="email"
+              id="email"
+              autocomplete="username"
+              inputmode="email"
+              required
+            />
+          </fieldset>
+
+          <fieldset>
+            <label class="rotulo" for="senha">Senha</label>
+            <input
+              type="password"
+              id="senha"
+              autocomplete="current-password"
+              required
+            />
+          </fieldset>
+
+          <button type="submit" class="salvar" id="btnEntrar">Entrar</button>
+          <p class="status" id="statusEntrar"></p>
+        </form>
+
+        <p class="dica">
+          Uma conta só, a sua. Depois de entrar, o aparelho continua conectado —
+          você não vai digitar isto todo dia.
+        </p>
+      </section>
+    </div>
+
+    <!-- ============================= APP ============================= -->
+
+    <div class="wrap" id="telaApp" hidden>
+      <header>
+        <div class="cabecalho-linha">
+          <div>
+            <span class="eyebrow" id="diaSemana">—</span>
+            <h1 id="dataLonga">—</h1>
+          </div>
+          <button
+            type="button"
+            class="sinc"
+            id="estadoSinc"
+            title="Sincronizar agora"
+          >
+            —
+          </button>
+        </div>
+      </header>
+
+      <div class="abas" role="tablist">
+        <button type="button" id="abaDia" role="tab" aria-selected="true">Dia</button>
+        <button type="button" id="abaGastos" role="tab" aria-selected="false">Gastos</button>
+      </div>
+
+      <!-- ============================ DIA ============================ -->
+
+      <section class="tela" id="telaDia">
+        <fieldset>
+          <legend>Registrando</legend>
+          <div class="opcoes" id="qualDia">
+            <button type="button" class="op" data-v="ontem">ontem</button>
+            <button type="button" class="op" data-v="hoje">hoje</button>
+          </div>
+          <p class="dica" id="dicaDia"></p>
+        </fieldset>
+
+        <section class="prazos" id="secaoPrazos" hidden>
+          <div class="legenda-linha">
+            <span class="rotulo" id="prazosRotulo">Prazos</span>
+            <span class="placar" id="prazosPlacar"></span>
+          </div>
+          <div id="prazos" role="list" aria-labelledby="prazosRotulo"></div>
+          <p class="dica">
+            Vem dos seus arquivos, não daqui — toque para virar objetivo do
+            dia. Para mudar prazo ou texto, mexa no arquivo.
+          </p>
+        </section>
+
+        <fieldset class="objetivos">
+          <!-- `legend` só é rótulo do fieldset quando é o PRIMEIRO filho dele.
+               Dentro de uma div vira elemento genérico e o leitor de tela deixa
+               de anunciar o grupo. Aqui o rótulo é um span, como no resto do
+               app, e a linha com o placar é uma div comum. -->
+          <div class="legenda-linha">
+            <span class="rotulo" id="objetivosRotulo">Objetivos do dia</span>
+            <span class="placar" id="objetivosPlacar"></span>
+          </div>
+          <div id="objetivos" role="group" aria-labelledby="objetivosRotulo"></div>
+          <p class="dica">
+            Até três. Escreva de manhã, marque ao fechar o dia — o que não
+            couber em três não era prioridade.
+          </p>
+        </fieldset>
+
+        <fieldset class="treino">
+          <legend>Treino</legend>
+          <div class="opcoes" id="treino">
+            <button type="button" class="op" data-v="forca">força</button>
+            <button type="button" class="op" data-v="corrida">corrida</button>
+            <button type="button" class="op" data-v="ambos">ambos</button>
+            <button type="button" class="op" data-v="nada">nada</button>
+          </div>
+
+          <!-- Aparecem conforme a modalidade: km na corrida, grupos na força,
+               os dois em "ambos". A mesma regra está na constraint
+               `treino_detalhe_coerente` do banco. -->
+          <div class="treino-km" id="campoKm" hidden>
+            <label class="rotulo" for="treinoKm">Distância</label>
+            <div class="km-linha">
+              <input
+                type="text"
+                id="treinoKm"
+                inputmode="decimal"
+                maxlength="6"
+                placeholder="0,0"
+              />
+              <span class="km-unidade">km</span>
+            </div>
+          </div>
+
+          <div class="treino-grupos" id="campoGrupos" hidden>
+            <span class="rotulo" id="gruposRotulo">O que treinei</span>
+            <div
+              class="opcoes envolve"
+              id="treinoGrupos"
+              role="group"
+              aria-labelledby="gruposRotulo"
+            ></div>
+            <p class="dica">Pode marcar mais de um.</p>
+          </div>
+        </fieldset>
+
+        <fieldset class="sono">
+          <!-- Oculto porque "Dormi às", "Acordei às" e "Base" já nomeiam tudo:
+               um quarto rótulo mono-uppercase em cima deles é ruído. Continua
+               no HTML para o fieldset ter nome no leitor de tela. -->
+          <legend class="so-leitor">Sono</legend>
+          <div class="sono-grade">
+            <div class="sono-campo">
+              <label class="rotulo" for="dormiu">Dormi às</label>
+              <input type="time" id="dormiu" step="300" />
+            </div>
+            <div class="sono-campo">
+              <label class="rotulo" for="acordou">Acordei às</label>
+              <input type="time" id="acordou" step="300" />
+            </div>
+            <div class="sono-base">
+              <span class="rotulo">Base</span>
+              <output class="sono-valor indefinido" id="sonoValor" for="dormiu acordou">—</output>
+            </div>
+          </div>
+          <p class="dica" id="sonoDica"></p>
+          <p class="dica sono-media" id="sonoBase"></p>
+        </fieldset>
+
+        <fieldset class="energia">
+          <legend>Energia</legend>
+          <div class="opcoes" id="energia">
+            <button type="button" class="op" data-v="1">1</button>
+            <button type="button" class="op" data-v="2">2</button>
+            <button type="button" class="op" data-v="3">3</button>
+            <button type="button" class="op" data-v="4">4</button>
+            <button type="button" class="op" data-v="5">5</button>
+          </div>
+          <div class="escala"><span>arrasado</span><span>ótimo</span></div>
+        </fieldset>
+
+        <fieldset>
+          <label class="rotulo" for="janela">Janela 19h–22h</label>
+          <textarea id="janela" rows="2" maxlength="180" placeholder="o que saiu hoje"></textarea>
+          <p class="dica">
+            Uma linha. Se não saiu nada, escreva o que atrapalhou — isso também é
+            dado.
+          </p>
+        </fieldset>
+
+        <button type="button" class="salvar" id="salvar">Salvar</button>
+        <p class="status" id="status"></p>
+
+        <section class="hist">
+          <span class="rotulo">Últimos 7 dias</span>
+          <div id="lista"></div>
+        </section>
+
+        <section class="hist">
+          <button type="button" class="sair" id="sair">Sair da conta</button>
+        </section>
+      </section>
+
+      <!-- =========================== GASTOS =========================== -->
+
+      <section class="tela" id="telaGastos" hidden>
+        <div class="coluna-lancar">
+          <fieldset>
+            <span class="rotulo">Saldo — toque para conferir</span>
+            <div class="contas" id="contas"></div>
+            <div class="conferir" id="painelConferir" hidden>
+              <span class="rotulo" id="conferirTitulo">Conferir</span>
+              <p class="dica" id="conferirDica"></p>
+              <div class="conferir-linha">
+                <input
+                  type="text"
+                  id="conferirValor"
+                  inputmode="decimal"
+                  placeholder="saldo real, ex 400,00"
+                />
+                <button type="button" id="conferirOk">Gravar</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <label class="rotulo" for="gValor">Valor</label>
+            <input type="text" id="gValor" inputmode="decimal" placeholder="0,00" />
+          </fieldset>
+
+          <fieldset>
+            <legend>Conta</legend>
+            <div class="opcoes" id="gConta"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tipo</legend>
+            <div class="opcoes" id="gTipo">
+              <button type="button" class="op" data-v="saida">saída</button>
+              <button type="button" class="op" data-v="entrada">entrada</button>
+              <button type="button" class="op" data-v="transferencia">transf.</button>
+            </div>
+          </fieldset>
+
+          <fieldset id="campoDestino" hidden>
+            <legend>Para qual conta</legend>
+            <div class="opcoes" id="gDestino"></div>
+            <p class="dica">
+              Transferência entre contas suas não conta como gasto no mês.
+            </p>
+          </fieldset>
+
+          <fieldset id="campoGrupo">
+            <legend>Grupo</legend>
+            <div class="opcoes envolve" id="gGrupo"></div>
+          </fieldset>
+
+          <fieldset id="campoCategoria" hidden>
+            <legend>Categoria</legend>
+            <div class="opcoes envolve" id="gCategoria"></div>
+          </fieldset>
+
+          <fieldset>
+            <label class="rotulo" for="gDescricao">Descrição</label>
+            <input type="text" id="gDescricao" maxlength="80" placeholder="opcional" />
+          </fieldset>
+
+          <fieldset>
+            <label class="rotulo" for="gData">Data</label>
+            <input type="date" id="gData" />
+          </fieldset>
+
+          <button type="button" class="salvar" id="gLancar">Lançar</button>
+          <p class="status" id="gStatus"></p>
+
+          <p class="dica so-desktop">
+            <kbd>Enter</kbd> lança e volta ao valor · <kbd>Alt</kbd>+<kbd>1..3</kbd>
+            troca de conta · <kbd>Esc</kbd> limpa
+          </p>
+        </div>
+
+        <div class="coluna-razao">
+          <section class="hist">
+            <div class="total-mes">
+              <button type="button" class="seta" id="mesAnterior" aria-label="mês anterior">‹</button>
+              <span class="mes-nome" id="mesNome">—</span>
+              <button type="button" class="seta" id="mesProximo" aria-label="mês seguinte">›</button>
+            </div>
+            <div id="resumo"></div>
+          </section>
+
+          <section class="hist">
+            <span class="rotulo">Últimos lançamentos</span>
+            <div id="listaGastos"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <!-- Desfazer: montado e removido pelo JS. -->
+    <div id="ancoraDesfazer"></div>
+
+    <script type="module" src="./app/main.js"></script>
+  </body>
+</html>
