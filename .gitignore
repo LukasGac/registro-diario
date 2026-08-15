@@ -11,9 +11,9 @@
 # num repositório. Use `app/config.exemplo.js` como molde.
 publicar/app/config.js
 
-# LEGADO, E COM SEGREDO DENTRO: token em texto claro, id da planilha e a
-# conta de e-mail. A migração para o Supabase já aconteceu; este arquivo
-# só existe até a implantação do Apps Script ser excluída.
+# Legado do Apps Script, apagado em 15/08/2026. A regra fica: o arquivo
+# guardava um token em texto claro, e um `git add -A` distraído depois de
+# restaurá-lo de um backup o commitaria de volta.
 apps-script.gs
 
 # Importação da planilha antiga: saldos, gastos e registros diários reais.

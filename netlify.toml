@@ -1,0 +1,24 @@
+# =====================================================================
+# Configuração de publicação.
+#
+# A LINHA `publish` É UMA TRAVA DE SEGURANÇA, não conveniência.
+#
+# A raiz deste projeto contém coisas que NÃO podem ir para a web:
+# `banco/` (migrações e estrutura do schema), `testes/`, `preview/`,
+# `NOTAS-PESSOAIS.md` e `publicar/app/config.js`. Enquanto o deploy era
+# feito arrastando a pasta `publicar/` no navegador, a escolha era manual
+# e consciente. A partir do momento em que ele é disparado por comando ou
+# por agente, o diretório vira palpite — e o palpite errado publica o
+# projeto inteiro sem ninguém perceber.
+#
+# `command` fica vazio de propósito: não há build. São módulos ES nativos
+# servidos como arquivos estáticos, e é assim que deve continuar.
+# =====================================================================
+
+[build]
+  publish = "publicar"
+  command = ""
+
+# Os cabeçalhos de segurança (CSP, HSTS, X-Frame-Options) vivem em
+# `publicar/_headers`, ao lado do que eles protegem. Não duplicar aqui:
+# duas fontes para a mesma regra divergem, e a que perde é silenciosa.
